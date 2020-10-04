@@ -16,7 +16,8 @@ You will need the following packages (install via pip):
 
 Example call:
 python dataset-curation.py
-    -t "stop, go" -n 500 -m 3 -w 1.0 -g 0.2 -s 1.0 -r 16000 -e PCM_16
+    -t "stop, go" -n 1500 -w 1.0 -g 0.2 -s 1.0 -r 16000 -e PCM_16
+    -b "../../Python/datasets/background_noise"
     -o "../../Python/datasets/keywords_curated"
     "../../../Python/datasets/speech_commands_dataset"
     "../../Python/datasets/custom_keywords"     
@@ -33,6 +34,10 @@ At this time, the script does not support input directories that share
 subdirectory names with other input directories' subdirectories (i.e. put all
 your word samples in a single subdirectory among the input directories, as the
 script does not handle something like input_dir_1/hello and input_dir_2/hello).
+If you have mutliple subdirectories with the same keyword, combine them into
+one subdirectory.
+
+Only WAV files are supported at this time.
 
 Output directory (given by -o parameter) will be divided up into targets, noise,
 and unknown. For example:
@@ -69,9 +74,11 @@ import time
 import random
 import argparse
 from os import makedirs, listdir, rename
-from os.path import isdir, join, exists
+from os.path import isdir, join, exists, splitext
 
 import shutil
+import librosa
+import soundfile as sf
 
 import utils
 
@@ -80,6 +87,63 @@ __author__ = "Shawn Hymel"
 __copyright__ = "Copyright 2020, Shawn Hymel"
 __license__ = "MIT"
 __version__ = "0.1"
+
+# Settings
+unknown_dir_name = "_unknown"
+bg_dir_name = "_noise"
+
+################################################################################
+# Functions
+
+# Mix audio and random snippet of background noise
+def mix_audio(word_path=None, 
+                bg_path=None, 
+                word_vol=1.0, 
+                bg_vol=1.0, 
+                sample_time=1.0,
+                sample_rate=16000):
+    """
+    Read in a wav file and background noise file. Resample and adjust volume as
+    necessary.
+    """
+    
+    # If no word file is given, just return random background noise
+    if word_path == None:
+        waveform = [0] * int(sample_time * sample_rate)
+        fs = sample_rate
+    else:
+
+        # Open wav file, resample, mix to mono
+        waveform, fs = librosa.load(word_path, sr=sample_rate, mono=True)
+        
+        # Pad 0s on the end if not long enough
+        if len(waveform) < sample_time * sample_rate:
+            waveform = np.append(waveform, np.zeros(int((sample_time * 
+                sample_rate) - len(waveform))))
+
+        # Truncate if too long
+        waveform = waveform[:int(sample_time * sample_rate)]
+
+    # If no background noise is given, just return the waveform
+    if bg_path == None:
+        return waveform
+
+    # Open background noise file
+    bg_waveform, fs = librosa.load(bg_path, sr=fs)
+
+    # Pick a random starting point in background file
+    max_end = len(bg_waveform) - int(sample_time * sample_rate)
+    start_point = random.randint(0, max_end)
+    end_point = start_point + int(sample_time * sample_rate)
+    
+    # Mix the two sound samples (and multiply by volume)
+    waveform = [0.5 * word_vol * i for i in waveform] + \
+                (0.5 * bg_vol * bg_waveform[start_point:end_point])
+
+    return waveform
+
+################################################################################
+# Main
 
 ###
 # Parse command line arguments
@@ -103,18 +167,9 @@ parser.add_argument('-n',
                     action='store',
                     dest='num_samples',
                     type=int,
-                    default=500,
-                    help="Number of samples to randomly draw from each target "
-                            "keyword. Total number of samples created in each "
-                            "output directory is m * n (default: 500)")
-parser.add_argument('-m',
-                    '--num_bg_samples',
-                    action='store',
-                    dest='num_bg_samples',
-                    type=int,
-                    default=3,
-                    help="Number of random clips to take from each background "
-                            "noise file (default: 3)")
+                    default=1500,
+                    help="Number of mixed samples to place in each output "
+                            "category subdirectory (default: 1500)")
 parser.add_argument('-w',
                     '--word_vol',
                     action='store',
@@ -155,6 +210,14 @@ parser.add_argument('-e',
                              'DOUBLE'],
                     default='PCM_16',
                     help="Bit depth of each sample (default: PCM_16)")
+parser.add_argument('-b',
+                    '--bg_dir',
+                    action='store',
+                    dest='bg_dir',
+                    type=str,
+                    required=True,
+                    help="Directory where the background noise samples are "
+                            "stored")
 parser.add_argument('-o',
                    '--out_dir',
                    action='store',
@@ -162,7 +225,7 @@ parser.add_argument('-o',
                    type=str,
                    required=True,
                    help="Directory where the mixed audio samples are to be "
-                        "stored")
+                            "stored")
 parser.add_argument('in_dirs',
                     metavar='d',
                     type=str,
@@ -173,12 +236,12 @@ parser.add_argument('in_dirs',
 args = parser.parse_args()
 targets = args.targets
 num_samples = args.num_samples
-num_bg_samples = args.num_bg_samples
 word_vol = args.word_vol
 bg_vol = args.bg_vol
 sample_time = args.sample_time
 sample_rate = args.sample_rate
 bit_depth = args.bit_depth
+bg_dir = args.bg_dir
 out_dir = args.out_dir
 in_dirs = args.in_dirs
 
@@ -226,4 +289,97 @@ for directory in in_dirs:
 # Remove duplicates from list
 word_list = list(dict.fromkeys(word_list))
 
-print(word_list)
+# Make target list and make sure each target word appears in our list of words
+target_list = [word.strip() for word in targets.split(',')]
+for target in target_list:
+    if target not in word_list:
+        print("ERROR: Target word '" + target + "' not found as subdirectory "
+                "in input directories. Exiting.")
+        exit()
+
+# Remove targets from word list to create "unknown" list
+unknown_list = []
+[unknown_list.append(name) for name in word_list if name not in target_list]
+
+###
+# Save clips of background noise
+
+# Create _background subdirectory
+out_subdir = join(out_dir, bg_dir_name)
+makedirs(out_subdir)
+
+# Create list of background noise files
+bg_paths = []
+for bg_file in listdir(bg_dir):
+    _, extension = splitext(bg_file)
+    if (extension == ".wav" or extension == ".WAV"):
+        bg_paths.append(join(bg_dir, bg_file))
+
+# Randomize list of paths and take first n paths
+random.shuffle(bg_paths)
+bg_paths = bg_paths[:num_samples]
+num_bg_files = len(bg_paths)
+
+# Print what we're doing and show progress bar
+print("Gathering random background noise snippets (" + str(num_samples) +
+        " files)")
+utils.print_progress_bar(   0, 
+                            num_samples, 
+                            prefix="Progress:", 
+                            suffix="Complete", 
+                            length=50)
+
+# Go through each background file, taking a random sample from different points
+num_digits = len(str(num_samples))
+for i in range(num_samples):
+
+    # Get random snippet from background noise (round robin bg files)
+    waveform = mix_audio(   word_path=None, 
+                            bg_path=bg_paths[i % num_bg_files], 
+                            word_vol=word_vol, 
+                            bg_vol=bg_vol, 
+                            sample_time=sample_time,
+                            sample_rate=sample_rate)
+    
+    # Save to new file
+    filename = bg_dir_name + "." + str(i).zfill(num_digits) + ".wav"
+    sf.write(join(out_subdir, filename), 
+            waveform, 
+            sample_rate, 
+            subtype=bit_depth)
+
+    # Update progress bar
+    utils.print_progress_bar(   i + 1, 
+                                num_samples, 
+                                prefix="Progress:", 
+                                suffix="Complete", 
+                                length=50)
+
+###
+# Mix target words
+
+# Create a list of target word locations
+for target in target_list:
+
+    # Create list of paths with target word audio files
+    file_paths = []
+    for directory in in_dirs:
+        in_subdir = join(directory, target)
+        if isdir(in_subdir):
+            for word_filename in listdir(in_subdir):
+                file_paths.append(join(in_subdir, word_filename))
+    
+    # Randomize list of paths and take first n paths
+    random.shuffle(file_paths)
+    file_paths = file_paths[:num_samples]
+
+    # If we have less than n files, figure out how many bg samples per file
+    samples_per_bg_file = int(len(file_paths) / len(bg_paths))
+    samples_bg_remainder = len(file_paths) % len(bg_paths)
+
+    print(samples_per_bg_file)
+    print(samples_bg_remainder)
+        
+
+
+
