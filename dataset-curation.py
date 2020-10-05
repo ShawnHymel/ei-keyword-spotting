@@ -462,7 +462,7 @@ for i in range(num_samples):
                             sample_rate=sample_rate)
 
     # Save to new file
-    filename = target + "." + str(i).zfill(num_digits) + ".wav"
+    filename = unknown_dir_name + "." + str(i).zfill(num_digits) + ".wav"
     sf.write(   join(out_subdir, filename),
                 waveform,
                 sample_rate,
