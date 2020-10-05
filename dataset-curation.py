@@ -276,9 +276,12 @@ else:
 # Create a list of possible words from the subdirectories
 word_list = []
 for directory in in_dirs:
-    for name in listdir(directory):
-        if isdir(join(directory, name)):
-            word_list.append(name)
+    try:
+        for name in listdir(directory):
+          if isdir(join(directory, name)):
+              word_list.append(name)
+    except OSError:
+        print("No directory named '" + str(directory) + "'. Ignoring.")
 
 # Remove duplicates from list
 word_list = list(dict.fromkeys(word_list))
