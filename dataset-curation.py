@@ -16,7 +16,7 @@ You will need the following packages (install via pip):
 
 Example call:
 python dataset-curation.py
-    -t "stop, go" -n 1500 -w 1.0 -g 0.2 -s 1.0 -r 16000 -e PCM_16
+    -t "go, stop" -n 1500 -w 1.0 -g 0.1 -s 1.0 -r 16000 -e PCM_16
     -b "../../Python/datasets/background_noise"
     -o "../../Python/datasets/keywords_curated"
     "../../../Python/datasets/speech_commands_dataset"
@@ -29,13 +29,6 @@ example:
     |--- bed
     |--- bird
     |--- ...
-
-At this time, the script does not support input directories that share
-subdirectory names with other input directories' subdirectories (i.e. put all
-your word samples in a single subdirectory among the input directories, as the
-script does not handle something like input_dir_1/hello and input_dir_2/hello).
-If you have mutliple subdirectories with the same keyword, combine them into
-one subdirectory.
 
 Only WAV files are supported at this time.
 
@@ -79,6 +72,7 @@ from os.path import isdir, join, exists, splitext
 import shutil
 import librosa
 import soundfile as sf
+import numpy as np
 
 import utils
 
@@ -183,9 +177,9 @@ parser.add_argument('-g',
                     action='store',
                     dest='bg_vol',
                     type=float,
-                    default=0.2,
+                    default=0.1,
                     help="Relative volume to multiply each background noise by "
-                            "(default: 0.2)")
+                            "(default: 0.1)")
 parser.add_argument('-s',
                     '--sample_time',
                     action='store',
@@ -301,6 +295,12 @@ for target in target_list:
 unknown_list = []
 [unknown_list.append(name) for name in word_list if name not in target_list]
 
+# Seed (use system time)
+random.seed()
+
+# Figure out the number of digits needed in for filename counter
+num_digits = len(str(num_samples))
+
 ###
 # Save clips of background noise
 
@@ -330,7 +330,6 @@ utils.print_progress_bar(   0,
                             length=50)
 
 # Go through each background file, taking a random sample from different points
-num_digits = len(str(num_samples))
 for i in range(num_samples):
 
     # Get random snippet from background noise (round robin bg files)
@@ -343,10 +342,10 @@ for i in range(num_samples):
     
     # Save to new file
     filename = bg_dir_name + "." + str(i).zfill(num_digits) + ".wav"
-    sf.write(join(out_subdir, filename), 
-            waveform, 
-            sample_rate, 
-            subtype=bit_depth)
+    sf.write(   join(out_subdir, filename), 
+                waveform, 
+                sample_rate, 
+                subtype=bit_depth)
 
     # Update progress bar
     utils.print_progress_bar(   i + 1, 
@@ -361,25 +360,126 @@ for i in range(num_samples):
 # Create a list of target word locations
 for target in target_list:
 
+    # Create target word subdirectory
+    out_subdir = join(out_dir, target)
+    makedirs(out_subdir)
+
     # Create list of paths with target word audio files
     file_paths = []
     for directory in in_dirs:
         in_subdir = join(directory, target)
         if isdir(in_subdir):
             for word_filename in listdir(in_subdir):
-                file_paths.append(join(in_subdir, word_filename))
+                _, extension = splitext(word_filename)
+                if (extension == ".wav" or extension == ".WAV"):
+                    file_paths.append(join(in_subdir, word_filename))
     
     # Randomize list of paths and take first n paths
     random.shuffle(file_paths)
     file_paths = file_paths[:num_samples]
 
-    # If we have less than n files, figure out how many bg samples per file
-    samples_per_bg_file = int(len(file_paths) / len(bg_paths))
-    samples_bg_remainder = len(file_paths) % len(bg_paths)
+    # Print what we're doing and show progress bar
+    print("Mixing: " + str(target) + " (" + str(num_samples) + " files)") 
+    utils.print_progress_bar(   0, 
+                                num_samples, 
+                                prefix="Progress:", 
+                                suffix="Complete", 
+                                length=50)
 
-    print(samples_per_bg_file)
-    print(samples_bg_remainder)
+    # Go through each target word file and mix it with a random noise snippet
+    for i in range(num_samples):
+
+        # Randomly choose background noise from list
+        # %%%TODO: Better way to do this? Round robin from bg list?
+        bg_path = bg_paths[random.randrange(num_bg_files)]
         
+        # Mix target audio file and background noise file. Use round-robin to
+        # add duplicate target files (if less than number of desired samples)
+        waveform = mix_audio(   word_path=file_paths[i % len(file_paths)], 
+                                bg_path=bg_path, 
+                                word_vol=word_vol, 
+                                bg_vol=bg_vol, 
+                                sample_time=sample_time,
+                                sample_rate=sample_rate)
+
+        # Save to new file
+        filename = target + "." + str(i).zfill(num_digits) + ".wav"
+        sf.write(   join(out_subdir, filename),
+                    waveform,
+                    sample_rate,
+                    subtype=bit_depth)
+                    
+        # Update progress bar
+        utils.print_progress_bar(   i + 1, 
+                                    num_samples, 
+                                    prefix="Progress:", 
+                                    suffix="Complete", 
+                                    length=50)
+
+###
+# Mix words in "unknown" category
+
+# Create _background subdirectory
+out_subdir = join(out_dir, unknown_dir_name)
+makedirs(out_subdir)
+
+# Create list of paths with target word audio files
+file_paths = []
+for directory in in_dirs:
+    for in_subdir in listdir(directory):
+        if (isdir(join(directory, in_subdir))) and (in_subdir in unknown_list):
+            for word_filename in listdir(join(directory, in_subdir)):
+                _, extension = splitext(word_filename)
+                if (extension == ".wav" or extension == ".WAV"):
+                    file_paths.append(join(directory, in_subdir, word_filename))
+
+# Randomize list of paths and take first n paths
+random.shuffle(file_paths)
+file_paths = file_paths[:num_samples]
+
+# Print what we're doing and show progress bar
+print("Mixing: " + str(unknown_dir_name) + " (" + str(num_samples) + " files)")
+utils.print_progress_bar(   0, 
+                            num_samples, 
+                            prefix="Progress:", 
+                            suffix="Complete", 
+                            length=50)
+
+# Go through each target word file and mix it with a random noise snippet
+for i in range(num_samples):
+
+    # Randomly choose background noise from list
+    # %%%TODO: Better way to do this? Round robin from bg list?
+    bg_path = bg_paths[random.randrange(num_bg_files)]
+    
+    # Mix target audio file and background noise file. Use round-robin to
+    # add duplicate target files (if less than number of desired samples)
+    waveform = mix_audio(   word_path=file_paths[i % len(file_paths)], 
+                            bg_path=bg_path, 
+                            word_vol=word_vol, 
+                            bg_vol=bg_vol, 
+                            sample_time=sample_time,
+                            sample_rate=sample_rate)
+
+    # Save to new file
+    filename = target + "." + str(i).zfill(num_digits) + ".wav"
+    sf.write(   join(out_subdir, filename),
+                waveform,
+                sample_rate,
+                subtype=bit_depth)
+                
+    # Update progress bar
+    utils.print_progress_bar(   i + 1, 
+                                num_samples, 
+                                prefix="Progress:", 
+                                suffix="Complete", 
+                                length=50)
+
+
+# Say we're done
+print("Done!")
+exit()
+
 
 
 
