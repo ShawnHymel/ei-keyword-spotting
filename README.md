@@ -69,15 +69,40 @@ Run the rest of the cells (use 'shift' + 'enter' to run a cell)! Data will be au
 
 #### Option 2: Local Curation Script
 
-TODO
+Download the [Google Speech Commnads dataset](http://download.tensorflow.org/data/speech_commands_v0.02.tar.gz).
 
-...upload .wav files to EI.
+Install Python on your computer. Use *pip* to install the following packages:
+* numpy
+* librosa
+* soundfile
+* shutil
+
+Download this repository. From the repository's directory, run the **dataset-curation.py** script, pointing it to the Google Speech Commands dataset and custom keyword dataset directory (if you have one). An example call looks like:
+
+```
+python dataset-curation.py \
+    -t "go, stop" -n 1500 -w 1.0 -g 0.1 -s 1.0 -r 16000 -e PCM_16 \
+    -b "../../Python/datasets/background_noise" \
+    -o "../../Python/datasets/keywords_curated" \
+    "../../../Python/datasets/speech_commands_dataset" \
+    "../../Python/datasets/custom_keywords"    
+```
+
+Enter to `python dataset-curation.py -h` for information on the parameters.
+
+When the script is finished, head to [Edge Impulse](https://edgeimpulse.com), log in, and open your project. Click on **Data Acquisition** and click on the **upload button**.
+
+%%%EI upload button
+
+Select all of the curated/mixed audio files for one category. Let Edge Impulse automatically split between training and testing, and let it infer the label from the filename. Repeat this process for all of the .wav files in each category.
 
 ### Train Neural Network with Edge Impulse
 
 TODO
 
 ### Load Machine Learning Model in Embedded Project and Test
+
+Download and install [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html), accepting all the defaults.
 
 TODO
 
