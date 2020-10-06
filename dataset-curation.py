@@ -429,12 +429,18 @@ makedirs(out_subdir)
 # Create list of paths with target word audio files
 file_paths = []
 for directory in in_dirs:
-    for in_subdir in listdir(directory):
-        if (isdir(join(directory, in_subdir))) and (in_subdir in unknown_list):
-            for word_filename in listdir(join(directory, in_subdir)):
-                _, extension = splitext(word_filename)
-                if (extension == ".wav" or extension == ".WAV"):
-                    file_paths.append(join(directory, in_subdir, word_filename))
+    try:
+        for in_subdir in listdir(directory):
+            if (isdir(join(directory, in_subdir))) and \
+            (in_subdir in unknown_list):
+                for word_filename in listdir(join(directory, in_subdir)):
+                    _, extension = splitext(word_filename)
+                    if (extension == ".wav" or extension == ".WAV"):
+                        file_paths.append(join( directory, 
+                                                in_subdir, 
+                                                word_filename))
+    except OSError:
+        print("No directory named '" + str(directory) + "'. Ignoring.")
 
 # Randomize list of paths and take first n paths
 random.shuffle(file_paths)
@@ -482,7 +488,3 @@ for i in range(num_samples):
 # Say we're done
 print("Done!")
 exit()
-
-
-
-
