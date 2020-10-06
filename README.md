@@ -58,7 +58,7 @@ Create a [Google Gmail](https://gmail.com/) account, if you do not already have 
 
 Click on the **ei-audio-dataset-curation.ipynb** link and click on the **Open in Colab** link to run the Notebook in Colab.
 
-Alternatively, just click this: [![Open In Colab <](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ShawnHymel/ei-keyword-spotting/blob/master/ei_audio_dataset_curation.ipynb)
+Alternatively, just click this: [![Open In Colab <](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ShawnHymel/ei-keyword-spotting/blob/master/ei-audio-dataset-curation.ipynb)
 
 Follow the instructions in the Notebook to curate your own dataset.
 
