@@ -52,13 +52,11 @@ This is the best option if you have a slow Internet connection or don't want to 
 
 Sign up for an account on [Edge Impulse](https://www.edgeimpulse.com/). Create a new project. Go into that project, select **Dashboard > Keys**. Copy the API key.
 
-%%%screen - ei key
+![Copy Edge Impulse API key](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-ei-api-key.png)
 
 Create a [Google Gmail](https://gmail.com/) account, if you do not already have one.
 
-Click on the **ei-audio-dataset-curation.ipynb** link and click on the **Open in Colab** link to run the Notebook in Colab.
-
-Alternatively, just click this: [![Open In Colab <](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ShawnHymel/ei-keyword-spotting/blob/master/ei-audio-dataset-curation.ipynb)
+Click this link to open the curation notebook in Colab: [![Open In Colab <](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ShawnHymel/ei-keyword-spotting/blob/master/ei-audio-dataset-curation.ipynb)
 
 Follow the instructions in the Notebook to curate your own dataset.
 
@@ -67,7 +65,7 @@ Note that in the *Settings* cell, you will need to adjust a few variables.
 * Paste in your Edge Impulse API key (as a string) for `EI_API_KEY`
 * Set your desired target keywords as a comma-separated string for `TARGETS`
 
-Run the rest of the cells (use 'shift' + 'enter' to run a cell)!
+Run the rest of the cells (use 'shift' + 'enter' to run a cell)! Data will be automatically split (between training and test sets) and uploaded to your Edge Impulse project.
 
 #### Option 2: Local Curation Script
 
@@ -90,6 +88,7 @@ copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
