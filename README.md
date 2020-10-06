@@ -71,6 +71,18 @@ Run the rest of the cells (use 'shift' + 'enter' to run a cell)! Data will be au
 
 TODO
 
+...upload .wav files to EI.
+
+### Train Neural Network with Edge Impulse
+
+TODO
+
+### Load Machine Learning Model in Embedded Project and Test
+
+TODO
+
+![Running keyword spotting demo on STM32](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-serial-output.png)
+
 ## License
 
 Unless otherwise noted (e.g. STM32CubeIDE projects have their own licenses), code is licensed under the MIT license:
