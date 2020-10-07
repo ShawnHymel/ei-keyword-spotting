@@ -1,6 +1,6 @@
 # Keyword Spotting with Edge Impulse
 
-%%%Nucleo and Mic
+![STM32 Nucleo-L476RG and MEMS microphone breakout board](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/stm32-nucleo-l476rg-mic.png)
 
 This repository is a collection of tools and demo projects to help you get started creating your own embedded keyword spotting system with machine learning. Keyword spotting (or wake word) is a form of voice recognition that allows computers (or microcontrollers) to respond to spoken words.
 
@@ -96,7 +96,7 @@ Enter to `python dataset-curation.py -h` for information on the parameters.
 
 When the script is finished, head to [Edge Impulse](https://edgeimpulse.com), log in, and open your project. Click on **Data Acquisition** and click on the **upload button**.
 
-![Upload button in Edge Impulse Data Acquisition](https://github.com/ShawnHymel/ei-keyword-spotting/blob/master/images/screen-ei-data-acquisition.png?raw=true)
+![Upload button in Edge Impulse Data Acquisition](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-ei-data-acquisition.png)
 
 Select all of the curated/mixed audio files for one category. Let Edge Impulse automatically split between training and testing, and let it infer the label from the filename. Repeat this process for all of the .wav files in each category.
 
@@ -104,11 +104,11 @@ Select all of the curated/mixed audio files for one category. Let Edge Impulse a
 
 In your Edge Impulse project, click on **Impulse Design** on the left-side pane. Add an **Audio (MFCC)** processing block and a **Neural Network (Keras)** learning block. Keep all of the settings at their defaults for the blocks. Click **Save Impulse**.
 
-%%%EI Impulse Design
+![Edge Impulse impulse design](https://github.com/ShawnHymel/ei-keyword-spotting/blob/master/images/screen-ei-impulse-design.png?raw=true)
 
 Click on **MFCC** under *Impulse Design* in the left-side pane. Click on the **Generate Features** tab, and click the **Generate Features** button. Edge Impulse will convert all audio samples into a series of Mel-frequency cepstral coefficients (MFCCs), which act as the features to be fed to the neural network. Wait until you see "Job completed" at the bottom before moving on.
 
-%%%ei-extract-features
+![Edge Impulse extract features](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-ei-extract-features.png)
 
 Click on the **NN Classifier** link under *Impulse design* to go to the neural network training block. Feel free to play around with the various parameters, including constructing your own neural network. However, I found that the defaults worked well for classifying 1-2 keywords (you may need to add more nodes or layers in the neural network if you want more than 2 keywords).
 
@@ -116,7 +116,7 @@ Press the **Start Training** button, and wait a few minutes while the neural net
 
 When it's done, scroll down, and you should see a [confusion matrix](https://en.wikipedia.org/wiki/Confusion_matrix) along with some metrics giving you an indication of the performance of the trained model.
 
-%%%ei-training
+![Edge Impulse neural network model training](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-ei-training.png)
 
 I recommend heading to the **Model Testing** section to test the performance of the model on your test samples, which were not used in training.
 
@@ -124,7 +124,7 @@ Click on the **Deployment** link in the left-side pane. For this demo, select th
 
 Feel free to click the **Analyze** button at the bottom to get an idea of how long it will take to perform inference along with the required memory to store and run your model (the default assumes an 80 MHz ARM Cortex-M4).
 
-%%%ei-build
+![Edge Impulse build library](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-ei-build.png )
 
 Leave the *EON compiler* enabled and and *Quantized (int8)* selected. Click **Build**, which will automatically download a .zip file containing your model and everything you need to perform inference.
 
@@ -158,7 +158,7 @@ Follow the README instructions in your desired demo project (e.g. [nucleo-l476-k
 
 #### Importing library into your own build system
 
-**Note:** Full tutorial coming soon. For now, here are some notes on what you need to do. It's written for STM32, but feel free to extrapolate to your own build system.
+**Note:** Full tutorial coming soon. For now, here are some notes on what you need to do. It's written for STM32CubeIDE, but feel free to extrapolate to your own build system.
 
 If you're planning on importing the library into your own build system, here are the folders you will need to remove from the downloaded library:
 * Delete *edge-impulse-sdk/utensor* (uTensor is an alternative to TensorFlow Lite)
