@@ -1,4 +1,4 @@
-# STM32 Nucleo-L476RG Keyword Spotting Demo
+# STM32 Nucleo-L432KC Keyword Spotting Demo
 
 ## Hardware Connections
 
@@ -6,14 +6,14 @@
 |:-------:|:------------:|:----------:|:-------------:|
 |         |              |    3.3V    |       3V      |
 |         |              |     GND    |      GND      |
-|   PB3   |  SAI1_SCK_B  |      D3    |     BCLK      |
-|   PB5   |   SAI1_SD_B  |      D4    |     DOUT      |
-|   PA4   |   SAI1_FS_B  |      A2    |     LRCL      |
+|   PA8   |  SAI1_SCK_A  |      D9    |     BCLK      |
+|   PA10  |   SAI1_SD_A  |      D0    |     DOUT      |
+|   PA9   |   SAI1_FS_A  |      A1    |     LRCL      |
 |    -    |       -      |       -    |      SEL      |
 
 ## Run Demo with Custom Model in STM32CubeIDE
 
-Select **File > Open Projects from File System...** and click **Directory...**. Select your demo project folder (e.g. *nucleo-l476-keyword-spotting*) from the downloaded repository. Click **Finish**.
+Select **File > Open Projects from File System...** and click **Directory...**. Select your demo project folder (e.g. *nucleo-l432-keyword-spotting*) from the downloaded repository. Click **Finish**.
 
 ![STM32CubeIDE import project](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-import-stm32-project.png)
 
