@@ -31,7 +31,7 @@ At this point, you should have replaced the *model-parameters* and *tflite-model
 
 Select **Project > Build Configurations > Set Active > Release**. Then, select **Project > Build Project**. Wait while the project builds.
 
-Select **Run > Run Configurations**. Click the **New Configuration** button (top left) to create a new configuration profile. It should be named "<project_name> Release" and use the *Release/<project_name>.elf* file for the application. If not, click **Search Project...** and select the *Release* .elf file for your project. Leave everything else as default. Click **Run**.
+Select **Run > Run Configurations**. Click the **New Configuration** button (top left) to create a new configuration profile. It should be named "<project_name> Release" and use the *Release/<project_name>.elf* file for the application. If not, click **Search Project...** and select the *Release/<project_name>.elf* file for your project. Leave everything else as default. Click **Run**.
 
 ![STM32CubeIDE create run configuration for Release build](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-stm32-run-configuration.png)
 

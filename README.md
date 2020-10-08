@@ -2,7 +2,7 @@
 
 ![STM32 Nucleo-L476RG and MEMS microphone breakout board](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/stm32-nucleo-l476rg-mic.png)
 
-This repository is a collection of tools and demo projects to help you get started creating your own embedded keyword spotting system with machine learning. Keyword spotting (or wake word) is a form of voice recognition that allows computers (or microcontrollers) to respond to spoken words.
+This repository is a collection of tools and demo projects to help you get started creating your own embedded keyword spotting system with machine learning. Keyword spotting (or wake word detection) is a form of voice recognition that allows computers (or microcontrollers) to respond to spoken words.
 
 Please note that because we are targeting embedded systems (namely, microcontrollers), this demo is very limited. You will likely only be able to train a system to recognize 1 or 2 words at a time. Anything more than that will require a more powerful microcontroller with more memory.
 
@@ -10,15 +10,15 @@ Please note that because we are targeting embedded systems (namely, microcontrol
 
 * **embedded-demos/** - Collection of keyword spotting projects for various microcontroller development boards
 * **images/** - I needed to put pictures somewhere
-* **dataset-curation.py** - Run this locally to combine custom wake words with the Google Speech Commands dataset and mix samples with background noise
-* **ei-audio-dataset-curation.ipynb** - Run this in Google Colab if you want to do curation remotely
+* **dataset-curation.py** - Run this locally to perform data curation and augmentation; it combines custom wake words with the Google Speech Commands dataset and mixes samples with background noise
+* **ei-audio-dataset-curation.ipynb** - Run this in Google Colab if you want to do data curation and augmentation remotely
 * **utils.py** - A few functions to help with dataset curation
 
 ## Getting Started
 
 ### Data Collection
 
-This project relies on the Google Speech Commands dataset as a starting point for your keyword spotting system. You may choose any word(s) from that set to be your keyword (or wake word). Additionally, you may record your own samples to use in addition to the Google Speech Commands dataset.
+This project relies on the Google Speech Commands dataset as a starting point for your keyword spotting system. You may choose any word(s) from that set to be your keyword(s). Additionally, you may record your own samples to use in addition to the Google Speech Commands dataset.
 
 If you decide to record your own samples, please follow these recommended guidelines:
 * Samples should be 1 second long, mono, in raw (.wav) format
@@ -44,6 +44,8 @@ Store your samples in a directory structure as follows. The filename of each sam
 |--- ...
 ```
 
+You are welcome to use my collection of spoken words/phrases from [this repository](https://github.com/ShawnHymel/custom-speech-commands-dataset).
+
 ### Data Curation
 
 Once we have samples, we need to curate our dataset. To do this, we're going to combine any custom samples with the Google Speech Commands dataset, mix the samples with background noise, and upload them to Edge Impulse. There are two ways to do this: run a Jupyter Notebook remotely in Google Colab or run the *data-curation.py* script locally on your machine.
@@ -62,20 +64,20 @@ Create a [Google Gmail](https://gmail.com/) account, if you do not already have 
 
 Click this link to open the curation notebook in Colab: [![Open In Colab <](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ShawnHymel/ei-keyword-spotting/blob/master/ei-audio-dataset-curation.ipynb)
 
-Follow the instructions in the Notebook to curate your own dataset.
+Follow the instructions in the Notebook to mix and curate your own dataset.
 
-Note that in the *Settings* cell, you will need to adjust a few variables.
+Note that in the `### Settings` cell, you will need to adjust a few variables.
 * Leave `CUSTOM_KEYWORDS_PATH` as an empty string (`""`) if you wish to just use the Google Speech Commands dataset or set it to the location of your custom keyword samples directory
 * Paste in your Edge Impulse API key (as a string) for `EI_API_KEY`
-* Set your desired target keywords as a comma-separated string for `TARGETS`
+* Set your desired target keywords as a comma-separated string for `TARGETS` (note that you might need to come back to this once you have downloaded the Google Speech Commnads Dataset and browsed the available keywords)
 
-Run the rest of the cells (use 'shift' + 'enter' to run a cell)! Data will be automatically split (between training and test sets) and uploaded to your Edge Impulse project.
+Run the rest of the cells (use 'shift' + 'enter' to run a cell). Data will be automatically split between training and test sets, and it will be uploaded to your Edge Impulse project.
 
 #### Option 2: Local Curation Script
 
 Download the [Google Speech Commnads dataset](http://download.tensorflow.org/data/speech_commands_v0.02.tar.gz).
 
-Install Python on your computer. Use *pip* to install the following packages:
+Install [Python](https://www.python.org/) on your computer. Use *pip* to install the following packages:
 * numpy
 * librosa
 * soundfile
@@ -92,7 +94,7 @@ python dataset-curation.py \
     "../../Python/datasets/custom_keywords"    
 ```
 
-Enter to `python dataset-curation.py -h` for information on the parameters.
+If you need help, enter `python dataset-curation.py -h` for information on the parameters.
 
 When the script is finished, head to [Edge Impulse](https://edgeimpulse.com), log in, and open your project. Click on **Data Acquisition** and click on the **upload button**.
 
@@ -102,7 +104,7 @@ Select all of the curated/mixed audio files for one category. Let Edge Impulse a
 
 ### Train Neural Network with Edge Impulse
 
-In your Edge Impulse project, click on **Impulse Design** on the left-side pane. Add an **Audio (MFCC)** processing block and a **Neural Network (Keras)** learning block. Keep all of the settings at their defaults for the blocks. Click **Save Impulse**.
+In your Edge Impulse project, click on **Impulse Design** in the left pane. Add an **Audio (MFCC)** processing block and a **Neural Network (Keras)** learning block. Keep all of the settings at their defaults for each block. Click **Save Impulse**.
 
 ![Edge Impulse impulse design](https://github.com/ShawnHymel/ei-keyword-spotting/blob/master/images/screen-ei-impulse-design.png?raw=true)
 
@@ -120,7 +122,7 @@ When it's done, scroll down, and you should see a [confusion matrix](https://en.
 
 I recommend heading to the **Model Testing** section to test the performance of the model on your test samples, which were not used in training.
 
-Click on the **Deployment** link in the left-side pane. For this demo, select the **C++ library** option, which will build a raw C++ library using TensorFlow Lite and our model.
+Click on the **Deployment** link in the left pane. For this demo, select the **C++ library** option, which will build a raw C++ library using TensorFlow Lite and our model.
 
 Feel free to click the **Analyze** button at the bottom to get an idea of how long it will take to perform inference along with the required memory to store and run your model (the default assumes an 80 MHz ARM Cortex-M4).
 
@@ -146,7 +148,7 @@ Unzip the downloaded library file, and you'll see that it contains a bunch of so
 
 The basic idea behind the Edge Impulse C++ library is that you would include it in your project and link to the various files in it with your build system (e.g. make). However, the library comes with a bunch of code to support a variety of microcontrollers and build systems. You should remove the folders that are not needed by your microcontroller (building with them will likely fail).
 
-If you are using one of the demo embedded projects in this repository, you can continue to the *STM32* section below (as the Edge Impulse library has already been curated and linked in the demo projects). Skip to the *your own build system* section for some notes on how to use the library in your own build system.
+I recommend starting with one of the demo embedded projects in this repository to see how to include the Edge Impulse library. If you would like to use the library in your own build system, skip to the [Importing the Edge Impulse library](https://github.com/ShawnHymel/ei-keyword-spotting#importing-the-edge-impulse-library-into-your-own-build-system) section below.
 
 #### STM32CubeIDE
 
@@ -156,16 +158,16 @@ Download and install [STM32CubeIDE](https://www.st.com/en/development-tools/stm3
 
 Follow the README instructions in your desired demo project (e.g. [nucleo-l476-keyword-spotting](https://github.com/ShawnHymel/ei-keyword-spotting/tree/master/embedded-demos/stm32cubeide/nucleo-l476-keyword-spotting)) to connect the microphone to your STM32 board and run the demo with your custom-trained neural network.
 
-#### Importing library into your own build system
+#### Importing the Edge Impulse library into your own build system
 
-**Note:** Full tutorial coming soon. For now, here are some notes on what you need to do. It's written for STM32CubeIDE, but feel free to extrapolate to your own build system.
+**Note:** Full tutorial coming soon. For now, here are some notes on what you need to do. It's written for STM32CubeIDE (because that's what I'm familiar with), but feel free to extrapolate to your own build system.
 
-If you're planning on importing the library into your own build system, here are the folders you will need to remove from the downloaded library:
+If you're planning on importing the library into your own build system, you should remove these folders from the downloaded Edge Impulse library:
 * Delete *edge-impulse-sdk/utensor* (uTensor is an alternative to TensorFlow Lite)
 * Delete all but *stm32-cubeai* folder in *edge-impulse-sdk/porting* (you want to keep the porting folder for your particular microcontroller family)
 * Delete *ei_run_classifier_c.cpp* and *ei_run_classifier_c.h* in *edge-impulse-sdk/classifier*
 
-In your build system, add the various folders to your build system's path so that it can find the header and source folders. In one of the STM32CubeIDE demo projects, go to *Project > Properties > C/C++ General > Paths and Symbols > Includes* and *Paths and Symbols > Source Location* to see a list of included directories you will need.
+In your build system, add the various folders to your build system's path so that it can find the header and source folders. To see which folders you should include in the build path, download one of the STM32CubeIDE demo projects and go to *Project > Properties > C/C++ General > Paths and Symbols > Includes* and *Paths and Symbols > Source Location*.
 
 For fastest inference, compile with the following preprocessor flags:
 * `-DEI_CLASSIFIER_TFLITE_ENABLE_CMSIS_NN=1`
