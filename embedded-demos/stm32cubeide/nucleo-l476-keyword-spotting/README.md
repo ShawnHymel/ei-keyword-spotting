@@ -19,7 +19,7 @@ Select **File > Open Projects from File System...** and click **Directory...**. 
 
 In the *Project Explorer*, delete the **model-parameters** and **tflite-model** directories in the *ei-keyword-spotting* diretory of your project, as these contain a previously trained model on the "yes" and "no" keywords.
 
-Select **File > Import**. For the *From directory* section, select the **model-parameters** directory is selected from your downloaded Edge Impulse library. Select the **model-parameters** folder in the left pane to include the header files in the import. Select **<project_name>/ei-keyword-spotting** as the *Into folder*. Select **Create top-level folder**. Click **Finish**.
+Select **File > Import** and **File System**. For the *From directory* section, select the **model-parameters** directory is selected from your downloaded Edge Impulse library. Select the **model-parameters** folder in the left pane to include the header files in the import. Select **<project_name>/ei-keyword-spotting** as the *Into folder*. Select **Create top-level folder**. Click **Finish**.
 
 ![STM32CubeIDE import directory](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-stm32-import-model-files.png)
 
