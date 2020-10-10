@@ -41,6 +41,12 @@ Use a serial terminal program (such as [PuTTY](https://www.putty.org/)) to view 
 
 ![Running keyword spotting demo on STM32](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-serial-output.png)
 
+If you see `ERROR: Audio buffer overrun`, it means your code is taking too long to process things after inference. A few recommendations to speed things up:
+* Comment out the "raw scores" printing section
+* Make UART printing interrupt-based instead of blocking
+* Do less stuff in your code section (e.g. don't print anything to the serial terminal)
+* Use less keywords (e.g. identify 1 keyword instead of 2 or 3).
+
 ## Licenses
 
 See individual source code files for their respective licenses. STM32 code, Edge Impulse libraries, and TensorFlow Lite are all licensed differently.
