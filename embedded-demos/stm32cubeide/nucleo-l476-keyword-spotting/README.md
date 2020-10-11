@@ -13,9 +13,9 @@
 
 ## Run Demo with Custom Model in STM32CubeIDE
 
-Select **File > Open Projects from File System...** and click **Directory...**. Select your demo project folder (e.g. *nucleo-l476-keyword-spotting*) from the downloaded repository. Click **Finish**.
+Select **File > Import...** Select **Existing Projects into Workspace** and click **Next**. Select your demo project folder (e.g. *nucleo-l476-keyword-spotting*) from the downloaded repository. Enable **Copy projects into workspace**. Click **Finish**.
 
-![STM32CubeIDE import project](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-import-stm32-project.png)
+![STM32CubeIDE import project](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-import-copy-stm32-project.png)
 
 In the *Project Explorer*, delete the **model-parameters** and **tflite-model** directories in the *ei-keyword-spotting* diretory of your project, as these contain a previously trained model on the "yes" and "no" keywords.
 
