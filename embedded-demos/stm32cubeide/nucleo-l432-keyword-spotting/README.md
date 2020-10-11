@@ -8,7 +8,7 @@
 |         |              |     GND    |      GND      |
 |   PA8   |  SAI1_SCK_A  |      D9    |     BCLK      |
 |   PA10  |   SAI1_SD_A  |      D0    |     DOUT      |
-|   PA9   |   SAI1_FS_A  |      A1    |     LRCL      |
+|   PA9   |   SAI1_FS_A  |      D1    |     LRCL      |
 |    -    |       -      |       -    |      SEL      |
 
 ## Run Demo with Custom Model in STM32CubeIDE
