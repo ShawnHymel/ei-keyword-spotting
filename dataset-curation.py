@@ -35,11 +35,11 @@ Only WAV files are supported at this time.
 Output directory (given by -o parameter) will be divided up into targets, noise,
 and unknown. For example:
     - keywords_curated
+    |--- _noise
+    |--- _unknown
     |--- go
-    |--- noise
     |--- stop
-    |--- unknown
-
+    
 The MIT License (MIT)
 
 Copyright (c) 2020 Shawn Hymel
