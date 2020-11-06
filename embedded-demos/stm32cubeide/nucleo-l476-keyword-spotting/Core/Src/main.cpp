@@ -198,7 +198,7 @@ int main(void)
         break;
     }
 
-    // Print output predictions
+    // Print output predictions (once every 4 predictions)
     if(++print_results >= (EI_CLASSIFIER_SLICES_PER_MODEL_WINDOW >> 1))
     {
       // Comment this section out if you don't want to see the raw scores
@@ -208,27 +208,30 @@ int main(void)
           ei_printf("    %s: %.5f\r\n", result.classification[ix].label, result.classification[ix].value);
       }
       print_results = 0;
-
-      // YOUR CODE GOES HERE!
-      // Note: see model_metadata.h for labels and indexes
-
-      // Example: print if "yes" is above 0.5 threshold
-      if (result.classification[3].value > 0.5)
-      {
-        ei_printf("YES!\r\n");
-      }
-
-      // Example: flash LED if "no" is above 0.5 threshold
-      if (result.classification[0].value > 0.5)
-      {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-      }
-      else
-      {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-      }
     }
 
+    // ***EXAMPLES***
+
+    // Your code goes here
+    // Note: see model_metadata.h for labels and indices
+
+    // Example: print if "yes" is above 0.5 threshold
+    if (result.classification[3].value > 0.5)
+    {
+      ei_printf("YES!\r\n");
+    }
+
+    // Example: flash LED if "no" is above 0.5 threshold
+    if (result.classification[0].value > 0.5)
+    {
+      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+    }
+    else
+    {
+      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+    }
+
+    // ***END OF EXAMPLES***
 
     /* USER CODE END WHILE */
 
