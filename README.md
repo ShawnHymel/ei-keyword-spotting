@@ -6,6 +6,8 @@ This repository is a collection of tools and demo projects to help you get start
 
 Please note that because we are targeting embedded systems (namely, microcontrollers), this demo is very limited. You will likely only be able to train a system to recognize 1 or 2 words at a time. Anything more than that will require a more powerful microcontroller with more memory.
 
+Hackaday Remoticon workshop slides can be found [here](https://docs.google.com/presentation/d/1E_Wod_Ag1JZIwDxhq3-ZSlooA_CxajjtcRWZzuzBdWQ/edit?usp=sharing).
+
 ## Repository Contents
 
 * **embedded-demos/** - Collection of keyword spotting projects for various microcontroller development boards
