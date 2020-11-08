@@ -8,6 +8,8 @@ Please note that because we are targeting embedded systems (namely, microcontrol
 
 Hackaday Remoticon workshop slides can be found [here](https://docs.google.com/presentation/d/1E_Wod_Ag1JZIwDxhq3-ZSlooA_CxajjtcRWZzuzBdWQ/edit?usp=sharing).
 
+**WARNING!** Avoid getting liquid (rubbing alcohol, water, etc.) in the MEMS microphone hole. If you do, you might permanently damage the microphone. Ask me how I know.
+
 ## Repository Contents
 
 * **embedded-demos/** - Collection of keyword spotting projects for various microcontroller development boards
