@@ -126,7 +126,9 @@ When it's done, scroll down, and you should see a [confusion matrix](https://en.
 
 I recommend heading to the **Model Testing** section to test the performance of the model on your test samples, which were not used in training.
 
-Click on the **Deployment** link in the left pane. For this demo, select the **C++ library** option, which will build a raw C++ library using TensorFlow Lite and our model.
+Click on the **Deployment** link in the left pane. If you are using an STM32 Nucleo board, select the **C++ library** option, which will build a raw C++ library using TensorFlow Lite and our model.
+
+If you are using the [Arduino Nano 33 BLE Sense](https://store.arduino.cc/usa/nano-33-ble-sense-with-headers), select the **Arduino library** option.
 
 Feel free to click the **Analyze** button at the bottom to get an idea of how long it will take to perform inference along with the required memory to store and run your model (the default assumes an 80 MHz ARM Cortex-M4).
 
@@ -135,6 +137,16 @@ Feel free to click the **Analyze** button at the bottom to get an idea of how lo
 Leave the *EON compiler* enabled and and *Quantized (int8)* selected. Click **Build**, which will automatically download a .zip file containing your model and everything you need to perform inference.
 
 ### Load Machine Learning Model in Embedded Project and Test
+
+#### Arduino
+
+**Note:** This has only been tested with the Arduino Nano 33 BLE Sense.
+
+You should *Add .ZIP Library* and use one of the included examples as a template for your program. 
+
+Follow the instructions in [this readme]() to see how to use the Arduino library.
+
+#### STM32CubeIDE
 
 Unzip the downloaded library file, and you'll see that it contains a bunch of source code. The directory structure should look like the following:
 
@@ -153,8 +165,6 @@ Unzip the downloaded library file, and you'll see that it contains a bunch of so
 The basic idea behind the Edge Impulse C++ library is that you would include it in your project and link to the various files in it with your build system (e.g. make). However, the library comes with a bunch of code to support a variety of microcontrollers and build systems. You should remove the folders that are not needed by your microcontroller (building with them will likely fail).
 
 I recommend starting with one of the demo embedded projects in this repository to see how to include the Edge Impulse library. If you would like to use the library in your own build system, skip to the [Importing the Edge Impulse library](https://github.com/ShawnHymel/ei-keyword-spotting#importing-the-edge-impulse-library-into-your-own-build-system) section below.
-
-#### STM32CubeIDE
 
 Download and install [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html), accepting all the defaults.
 
