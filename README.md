@@ -124,6 +124,8 @@ When it's done, scroll down, and you should see a [confusion matrix](https://en.
 
 ![Edge Impulse neural network model training](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-ei-training.png)
 
+### Testing and Deployment
+
 I recommend heading to the **Model Testing** section to test the performance of the model on your test samples, which were not used in training.
 
 Click on the **Deployment** link in the left pane. If you are using an STM32 Nucleo board, select the **C++ library** option, which will build a raw C++ library using TensorFlow Lite and our model.
@@ -144,7 +146,7 @@ Leave the *EON compiler* enabled and and *Quantized (int8)* selected. Click **Bu
 
 You should *Add .ZIP Library* and use one of the included examples as a template for your program. 
 
-Follow the instructions in [this readme]() to see how to use the Arduino library.
+Follow the instructions in [this readme](https://github.com/ShawnHymel/ei-keyword-spotting/tree/master/embedded-demos/arduino/arduino-nano-33-ble-sense) to see how to use the Arduino library.
 
 #### STM32CubeIDE
 
