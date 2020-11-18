@@ -20,7 +20,13 @@ The nested libraries may create paths that are too long for Windows. See [this a
 
 The Arduino Nano 33 BLE Sense has a habit of resetting the serial port after uploading code, so you may need reselect the correct one once it's done.
 
+Open the **Serial Monitor**, and you should see the predictions being printed to the screen. Try saying one of your keywords. The prediction output (essentially, the probability that the model thinks it heard that word/phrase) should go up.
 
+![Arduino running Edge Impulse continuous keyword spotting library](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-arduino-serial-monitor.png)
+
+I've added a couple of comments in the screenshot below to show you where you should add your own code. In the example, I look for the *forward* class (index of 2--refer to the order of appearance in the Serial Monitor) to produce a predicted probability of 0.7 or above. If that happens, I flash the Arduino Nano's onboard LED (don't forget to add `pinMode(LED_BUILTIN, OUTPUT);` in `setup()`).
+
+![Adding custom code to the Arduino keyword spotting demo](https://raw.githubusercontent.com/ShawnHymel/ei-keyword-spotting/master/images/screen-arduino-custom-code.png)
 
 ## Licenses
 
