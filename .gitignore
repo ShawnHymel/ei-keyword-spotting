@@ -122,3 +122,6 @@ types_c.taghl
 
 #CtrlP
 ctrlp.root
+
+# STM32CubeIDE garbage
+.metadata/

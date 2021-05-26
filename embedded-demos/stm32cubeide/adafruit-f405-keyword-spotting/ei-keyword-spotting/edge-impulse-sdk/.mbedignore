@@ -1,0 +1,7 @@
+utensor/CMakeFiles/
+tensorflow/lite/micro/mbed/
+porting/arduino/
+porting/ecm3532/
+porting/posix/
+porting/stm32-cubeai/
+classifier/ei_run_classifier_c*
