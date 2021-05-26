@@ -180,6 +180,7 @@ Follow the README instructions in your desired demo project (e.g. [nucleo-l476-k
 
 If you're planning on importing the library into your own build system, you should remove these folders from the downloaded Edge Impulse library:
 * Delete *edge-impulse-sdk/utensor* (uTensor is an alternative to TensorFlow Lite)
+* Delete *edge-impulse-sdk/tensorflow/lite/micro/testing* (the testing directory contains test code that should not be compiled)
 * Delete all but *stm32-cubeai* folder in *edge-impulse-sdk/porting* (you want to keep the porting folder for your particular microcontroller family)
 * Delete *ei_run_classifier_c.cpp* and *ei_run_classifier_c.h* in *edge-impulse-sdk/classifier*
 
