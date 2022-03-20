@@ -5,12 +5,13 @@
  * 
  * Author: Shawn Hymel
  * Date: February 28, 2021
+ * Updated: March 19, 2022
  * 
- * Connect analog microphone to pin 13 on the back of the Wio Terminal.
- * Pin 13 is D0/A0 in Arduino, PB08/AIN0.2 on the SAMD51
- * 
- * This works with the following amplified electret microphone:
- * https://www.adafruit.com/product/1063
+ * This demo uses the internal microphone on the Wio Terminal. Note that
+ * the internal microphone is configured to measure sound levels and does
+ * not work as well for recording raw audio. It will work decently enough 
+ * for this demo. Seeed Studio has promised a hardware fix for the microphone
+ * on the Wio Terminal v2.
  * 
  * You will need to install the Edge Impulse .zip file as a library. This
  * sketch works with the following .zip library: 
@@ -18,6 +19,9 @@
  * Download the .zip file and install as Arduino library. Don't worry about
  * the Nano 33 BLE Sense examples, as we just need the underlying library
  * for this demo.
+ * 
+ * If you download/install a .zip file from a different Edge Impulse project,
+ * you will need to change the #include below to point to that library.
  * 
  * Based on: Arduino Nano 33 BLE Sense continuous microphone demo
  * by Edge Impulse
@@ -63,17 +67,14 @@
 #define DEBUG 1                 // Enable pin pulse during ISR  
 enum { ADC_BUF_LEN = 1600 };    // Size of one of the DMA double buffers
 static const int debug_pin = 1; // Toggles each DAC ISR (if DEBUG is set to 1)
-static const float maf_threshold = 0.8;
+static const float maf_threshold = 0.7;
 
-// Labels
-typedef enum {
-  _NOISE,
-  _UNKNOWN,
-  FORWARD,
-  LEFT,
-  RIGHT,
-  STOP
-} label_t;
+// MAF calculation values
+typedef struct {
+  float prev = 0.0;
+  float val = 0.0;
+  float maf = 0.0;
+} maf_result_t;
 
 // DMAC descriptor structure
 typedef struct {
@@ -82,7 +83,7 @@ typedef struct {
   uint32_t srcaddr;
   uint32_t dstaddr;
   uint32_t descaddr;
-} dmacdescriptor ;
+} dmacdescriptor;
 
 // Audio buffers, pointers and selectors
 typedef struct {
@@ -200,7 +201,7 @@ void config_dma_adc() {
   DMAC->Channel[1].CHCTRLA.reg = DMAC_CHCTRLA_TRIGSRC(TC5_DMAC_ID_OVF) |      // Set DMAC to trigger on TC5 timer overflow
                                  DMAC_CHCTRLA_TRIGACT_BURST;                  // DMAC burst transfer
   descriptor.descaddr = (uint32_t)&descriptor_section[1];                     // Set up a circular descriptor
-  descriptor.srcaddr = (uint32_t)&ADC0->RESULT.reg;                           // Take the result from the ADC0 RESULT register
+  descriptor.srcaddr = (uint32_t)&ADC1->RESULT.reg;                           // Take the result from the ADC0 RESULT register
   descriptor.dstaddr = (uint32_t)adc_buf_0 + sizeof(uint16_t) * ADC_BUF_LEN;  // Place it in the adc_buf_0 array
   descriptor.btcnt = ADC_BUF_LEN;                                             // Beat count
   descriptor.btctrl = DMAC_BTCTRL_BEATSIZE_HWORD |                            // Beat size is HWORD (16-bits)
@@ -209,7 +210,7 @@ void config_dma_adc() {
                       DMAC_BTCTRL_BLOCKACT_SUSPEND;                           // Suspend DMAC channel 0 after block transfer
   memcpy(&descriptor_section[0], &descriptor, sizeof(descriptor));            // Copy the descriptor to the descriptor section
   descriptor.descaddr = (uint32_t)&descriptor_section[0];                     // Set up a circular descriptor
-  descriptor.srcaddr = (uint32_t)&ADC0->RESULT.reg;                           // Take the result from the ADC0 RESULT register
+  descriptor.srcaddr = (uint32_t)&ADC1->RESULT.reg;                           // Take the result from the ADC0 RESULT register
   descriptor.dstaddr = (uint32_t)adc_buf_1 + sizeof(uint16_t) * ADC_BUF_LEN;  // Place it in the adc_buf_1 array
   descriptor.btcnt = ADC_BUF_LEN;                                             // Beat count
   descriptor.btctrl = DMAC_BTCTRL_BEATSIZE_HWORD |                            // Beat size is HWORD (16-bits)
@@ -224,20 +225,20 @@ void config_dma_adc() {
 
   // Activate the suspend (SUSP) interrupt on DMAC channel 1
   DMAC->Channel[1].CHINTENSET.reg = DMAC_CHINTENSET_SUSP;
-
+  
   // Configure ADC
-  ADC0->INPUTCTRL.bit.MUXPOS = ADC_INPUTCTRL_MUXPOS_AIN2_Val; // Set the analog input to ADC0/AIN2 (PB08 - A4 on Metro M4)
-  while(ADC0->SYNCBUSY.bit.INPUTCTRL);                // Wait for synchronization
-  ADC0->SAMPCTRL.bit.SAMPLEN = 0x00;                  // Set max Sampling Time Length to half divided ADC clock pulse (2.66us)
-  while(ADC0->SYNCBUSY.bit.SAMPCTRL);                 // Wait for synchronization 
-  ADC0->CTRLA.reg = ADC_CTRLA_PRESCALER_DIV128;       // Divide Clock ADC GCLK by 128 (48MHz/128 = 375kHz)
-  ADC0->CTRLB.reg = ADC_CTRLB_RESSEL_12BIT |          // Set ADC resolution to 12 bits
+  ADC1->INPUTCTRL.bit.MUXPOS = ADC_INPUTCTRL_MUXPOS_AIN12_Val; // Set the analog input to ADC0/AIN2 (PB08 - A4 on Metro M4)
+  while(ADC1->SYNCBUSY.bit.INPUTCTRL);                // Wait for synchronization
+  ADC1->SAMPCTRL.bit.SAMPLEN = 0x00;                  // Set max Sampling Time Length to half divided ADC clock pulse (2.66us)
+  while(ADC1->SYNCBUSY.bit.SAMPCTRL);                 // Wait for synchronization 
+  ADC1->CTRLA.reg = ADC_CTRLA_PRESCALER_DIV128;       // Divide Clock ADC GCLK by 128 (48MHz/128 = 375kHz)
+  ADC1->CTRLB.reg = ADC_CTRLB_RESSEL_12BIT |          // Set ADC resolution to 12 bits
                     ADC_CTRLB_FREERUN;                // Set ADC to free run mode       
-  while(ADC0->SYNCBUSY.bit.CTRLB);                    // Wait for synchronization
-  ADC0->CTRLA.bit.ENABLE = 1;                         // Enable the ADC
-  while(ADC0->SYNCBUSY.bit.ENABLE);                   // Wait for synchronization
-  ADC0->SWTRIG.bit.START = 1;                         // Initiate a software trigger to start an ADC conversion
-  while(ADC0->SYNCBUSY.bit.SWTRIG);                   // Wait for synchronization
+  while(ADC1->SYNCBUSY.bit.CTRLB);                    // Wait for synchronization
+  ADC1->CTRLA.bit.ENABLE = 1;                         // Enable the ADC
+  while(ADC1->SYNCBUSY.bit.ENABLE);                   // Wait for synchronization
+  ADC1->SWTRIG.bit.START = 1;                         // Initiate a software trigger to start an ADC conversion
+  while(ADC1->SYNCBUSY.bit.SWTRIG);                   // Wait for synchronization
 
   // Enable DMA channel 1
   DMAC->Channel[1].CHCTRLA.bit.ENABLE = 1;
@@ -326,7 +327,7 @@ static void microphone_inference_end(void) {
  * 
  * @param[in] String as char array
  */
-void lcd_print_string(char str[]) {
+void lcd_print_string(const char str[]) {
 
   // Disable recording for 1-second hold-off
   recording = 0;
@@ -400,13 +401,6 @@ void setup() {
 
 void loop() { 
 
-  static float forward_prev = 0.0;
-  static float left_prev = 0.0;
-  static float right_prev = 0.0;
-  static float stop_prev = 0.0;
-  static label_t idx_prev;
-  label_t idx;
-
   // Wait until buffer is full
   bool m = microphone_inference_record();
   if (!m) {
@@ -428,65 +422,43 @@ void loop() {
   // YOUR CODE GOES HERE! (if you want to do something with inference results)
 
   // ***Example below: print keyword to LCD***
+  
+  static int idx_prev;
+  int idx;
 
-  // Calculate 2-point moving average filter (MAF) for forward label
-  float forward_val = result.classification[2].value;
-  float forward_maf = (forward_prev + forward_val) / 2;
-  forward_prev = forward_val;
+  // Store value and MAF results for keywords
+  static maf_result_t mafs[EI_CLASSIFIER_LABEL_COUNT];
 
-  // Calculate 2-point moving average filter (MAF) for left label
-  float left_val = result.classification[3].value;
-  float left_maf = (left_prev + left_val) / 2;
-  left_prev = left_val;
-
-  // Calculate 2-point moving average filter (MAF) for right label
-  float right_val = result.classification[4].value;
-  float right_maf = (right_prev + right_val) / 2;
-  right_prev = right_val;
-
-  // Calculate 2-point moving average filter (MAF) for stop label
-  float stop_val = result.classification[5].value;
-  float stop_maf = (stop_prev + stop_val) / 2;
-  stop_prev = stop_val;
+  // Calculate 2-point moving average filter (MAF) for all keyword labels
+  for (int ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
+    mafs[ix].val = result.classification[ix].value;
+    mafs[ix].maf = (mafs[ix].prev + mafs[ix].val) / 2;
+    mafs[ix].prev = mafs[ix].val;
+  }
 
   // Figure out if any MAF values surpass threshold
-  if (forward_maf > maf_threshold) {
-    idx = FORWARD;
-  } else if (left_maf > maf_threshold) {
-    idx = LEFT;
-  } else if (right_maf > maf_threshold) {
-    idx = RIGHT;
-  } else if (stop_maf > maf_threshold) {
-    idx = STOP;
-  } else {
-    idx = _NOISE;
+  // Ignore "_noise" (ix = 0) and "_unknown" (ix = 1)
+  for (int ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
+    if (mafs[ix].maf > maf_threshold) {
+      idx = ix;
+      break;
+    }
   }
 
   // Print label to LCD if predicted class is different from last iteration
+  // Don't print anything for "_noise" (idx == 0) or "_unknown" (idx == 1)
   if (idx != idx_prev) {
-    switch (idx) {
-      case FORWARD:
-        lcd_print_string("FORWARD");
-        break;
-      case LEFT:
-        lcd_print_string("LEFT");
-        break;
-      case RIGHT:
-        lcd_print_string("RIGHT");
-        break;
-      case STOP:
-        lcd_print_string("STOP");
-        break;
-      default:
-        lcd_print_string("");
-        break;
+    if (idx >= 2) {
+      lcd_print_string(result.classification[idx].label);
+    } else {
+      lcd_print_string("");
     }
   }
   idx_prev = idx;
 
   // ***End example***
 
-  // Print output predictions (once every 3 predictions)
+  // Print output prediction results (once every 3 predictions)
   if(++print_results >= (EI_CLASSIFIER_SLICES_PER_MODEL_WINDOW >> 1)) {
     
     // Comment this section out if you don't want to see the raw scores
